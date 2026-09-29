@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Advisor AI</title>
+    <meta name="description" content="A focused AI chatbot for business learning, planning and strategy.">
+
+    <style>
+        :root {
+            --bg: #07111f;
+            --panel: rgba(12, 25, 43, 0.78);
+            --panel-solid: #0d1b2e;
+            --panel-soft: rgba(255,255,255,0.045);
+            --border: rgba(255,255,255,0.10);
+            --text: #eef5ff;
+            --muted: #91a4bc;
+            --accent: #65d7ff;
+            --accent-2: #9d7bff;
+            --user: #163d56;
+            --danger: #ff7f8f;
+            --shadow: 0 24px 70px rgba(0,0,0,.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 10%, rgba(101,215,255,.13), transparent 28%),
+                radial-gradient(circle at 90% 85%, rgba(157,123,255,.14), transparent 30%),
+                var(--bg);
+        }
+
+        button, textarea {
+            font: inherit;
+        }
+
+        .app {
+            width: min(1420px, 100%);
+            min-height: 100vh;
+            margin: auto;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 18px;
+        }
+
+        .sidebar,
+        .main {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar {
+            border-radius: 28px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 26px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #07111f;
+            font-weight: 900;
+            box-shadow: 0 10px 30px rgba(101,215,255,.2);
+        }
+
+        .brand h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .brand p {
+            margin: 3px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .new-chat {
+            width: 100%;
+            border: 1px solid var(--border);
+            color: var(--text);
+            background: var(--panel-soft);
+            padding: 12px 14px;
+            border-radius: 14px;
+            cursor: pointer;
+            text-align: left;
+            transition: .2s ease;
+        }
+
+        .new-chat:hover,
+        .idea:hover {
+            transform: translateY(-1px);
+            border-color: rgba(101,215,255,.35);
+            background: rgba(101,215,255,.07);
+        }
+
+        .section-title {
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin: 26px 0 12px;
+        }
+
+        .ideas {
+            display: grid;
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 3px;
+        }
+
+        .idea {
+            border: 1px solid transparent;
+            background: transparent;
+            color: #dce7f5;
+            text-align: left;
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1.4;
+            transition: .2s ease;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 18px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .main {
+            min-width: 0;
+            border-radius: 28px;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            overflow: hidden;
+        }
+
+        .topbar {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #b8c8da;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #6ee7b7;
+            box-shadow: 0 0 14px rgba(110,231,183,.8);
+        }
+
+        .chat {
+            min-height: 0;
+            overflow-y: auto;
+            padding: 28px clamp(18px, 5vw, 70px);
+            scroll-behavior: smooth;
+        }
+
+        .welcome {
+            max-width: 760px;
+            margin: 7vh auto 0;
+            text-align: center;
+        }
+
+        .welcome-badge {
+            display: inline-flex;
+            padding: 7px 10px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: #bcd0e7;
+            font-size: 11px;
+            background: var(--panel-soft);
+        }
+
+        .welcome h3 {
+            font-size: clamp(28px, 4vw, 48px);
+            line-height: 1.05;
+            margin: 18px 0 12px;
+            letter-spacing: -.04em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--accent), #d4c6ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .welcome p {
+            margin: 0 auto;
+            color: var(--muted);
+            max-width: 620px;
+            line-height: 1.7;
+        }
+
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 26px;
+        }
+
+        .suggestion {
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
+            color: #dbe8f7;
+            border-radius: 15px;
+            padding: 13px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 12px;
+            transition: .2s ease;
+        }
+
+        .suggestion:hover {
+            border-color: rgba(101,215,255,.35);
+            transform: translateY(-1px);
+        }
+
+        .message {
+            display: flex;
+            margin: 18px 0;
+            animation: appear .2s ease;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: min(780px, 88%);
+            padding: 13px 16px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .user .bubble {
+            background: var(--user);
+            border-bottom-right-radius: 5px;
+        }
+
+        .model .bubble {
+            background: var(--panel-soft);
+            border-bottom-left-radius: 5px;
+        }
+
+        .composer {
+            padding: 16px clamp(16px, 4vw, 54px) 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .input-shell {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: rgba(3, 12, 24, .55);
+            box-shadow: 0 12px 40px rgba(0,0,0,.18);
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+            min-height: 45px;
+            max-height: 150px;
+            padding: 11px 12px;
+            border: 0;
+            outline: 0;
+            color: var(--text);
+            background: transparent;
+        }
+
+        textarea::placeholder {
+            color: #70849c;
+        }
+
+        .send {
+            width: 44px;
+            height: 44px;
+            flex: 0 0 auto;
+            border: 0;
+            border-radius: 14px;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #07111f;
+            font-size: 18px;
+            font-weight: 900;
+            transition: .2s ease;
+        }
+
+        .send:hover {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .send:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hint {
+            margin: 8px 3px 0;
+            color: #657991;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .typing {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #9eb0c5;
+            animation: pulse 1s infinite;
+        }
+
+        .typing span:nth-child(2) { animation-delay: .15s; }
+        .typing span:nth-child(3) { animation-delay: .3s; }
+
+        @keyframes pulse {
+            50% { opacity: .25; transform: translateY(-2px); }
+        }
+
+        @keyframes appear {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 860px) {
+            .app {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                min-height: calc(100vh - 20px);
+            }
+
+            .suggestions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">BA</div>
+            <div>
+                <h1>Business Advisor AI</h1>
+                <p>Focused business intelligence</p>
+            </div>
+        </div>
+
+        <button class="new-chat" id="newChat">＋ New conversation</button>
+
+        <div class="section-title">11 business directions</div>
+        <div class="ideas" id="ideaList"></div>
+
+        <div class="sidebar-footer">
+            AI-generated guidance is educational. Validate important financial,
+            legal, tax, and regulatory decisions with appropriate professionals
+            or official sources.
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <h2>Business Advisor AI</h2>
+            <div class="status">
+                <span class="status-dot"></span>
+                Gemini 3.1 Flash-Lite
+            </div>
+        </header>
+
+        <section class="chat" id="chat">
+            <div class="welcome" id="welcome">
+                <span class="welcome-badge">BUSINESS-ONLY AI ADVISOR</span>
+                <h3>Turn a business question into a <span class="gradient-text">clear next move.</span></h3>
+                <p>
+                    Explore business ideas, validate opportunities, analyze markets,
+                    improve pricing, plan marketing, and think through growth decisions.
+                </p>
+                <div class="suggestions" id="suggestions"></div>
+            </div>
+        </section>
+
+        <footer class="composer">
+            <form class="input-shell" id="chatForm">
+                <textarea id="messageInput" rows="1"
+                    placeholder="Ask a business question..."
+                    aria-label="Business question"></textarea>
+                <button class="send" id="sendButton" type="submit" aria-label="Send">↑</button>
+            </form>
+            <div class="hint">Business topics only • Press Enter to send • Shift + Enter for a new line</div>
+        </footer>
+    </main>
+</div>
+
+<script>
+    const ideas = [
+        "AI-powered small business idea validator",
+        "Startup business model and revenue planner",
+        "Local market research and competitor analyzer",
+        "Smart pricing and break-even advisor",
+        "Digital marketing strategy advisor",
+        "E-commerce growth advisor",
+        "Inventory and operations optimization advisor",
+        "Customer segmentation and persona advisor",
+        "Business risk and SWOT analysis assistant",
+        "Business pitch deck and presentation advisor",
+        "Small-business financial planning assistant"
+    ];
+
+    const chat = document.getElementById("chat");
+    const welcome = document.getElementById("welcome");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("messageInput");
+    const sendButton = document.getElementById("sendButton");
+    const newChat = document.getElementById("newChat");
+    const ideaList = document.getElementById("ideaList");
+    const suggestions = document.getElementById("suggestions");
+
+    let history = [];
+
+    function createButton(text, className = "idea") {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = className;
+        button.textContent = text;
+        button.addEventListener("click", () => {
+            input.value = text;
+            input.focus();
+        });
+        return button;
+    }
+
+    ideas.forEach((idea, index) => {
+        ideaList.appendChild(createButton(`${index + 1}. ${idea}`));
+    });
+
+    ideas.slice(0, 4).forEach(idea => {
+        suggestions.appendChild(createButton(idea, "suggestion"));
+    });
+
+    function addMessage(role, text) {
+        welcome?.remove();
+
+        const wrapper = document.createElement("div");
+        wrapper.className = `message ${role}`;
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
+
+        wrapper.appendChild(bubble);
+        chat.appendChild(wrapper);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addTyping() {
+        const wrapper = document.createElement("div");
+        wrapper.className = "message model";
+        wrapper.id = "typingMessage";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        const typing = document.createElement("div");
+        typing.className = "typing";
+        typing.innerHTML = "<span></span><span></span><span></span>";
+
+        bubble.appendChild(typing);
+        wrapper.appendChild(bubble);
+        chat.appendChild(wrapper);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function removeTyping() {
+        document.getElementById("typingMessage")?.remove();
+    }
+
+    async function sendMessage() {
+        const message = input.value.trim();
+
+        if (!message || sendButton.disabled) {
+            return;
+        }
+
+        input.value = "";
+        input.style.height = "45px";
+        addMessage("user", message);
+
+        const previousHistory = [...history];
+        history.push({ role: "user", text: message });
+
+        sendButton.disabled = true;
+        addTyping();
+
+        try {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message,
+                    history: previousHistory
+                })
+            });
+
+            const data = await response.json();
+
+            removeTyping();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Request failed.");
+            }
+
+            const answer = data.answer || "I couldn't generate a response.";
+            addMessage("model", answer);
+            history.push({ role: "model", text: answer });
+        } catch (error) {
+            removeTyping();
+            addMessage("model", error.message || "Something went wrong.");
+            history.pop();
+        } finally {
+            sendButton.disabled = false;
+            input.focus();
+        }
+    }
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+        sendMessage();
+    });
+
+    input.addEventListener("keydown", event => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    input.addEventListener("input", () => {
+        input.style.height = "45px";
+        input.style.height = `${Math.min(input.scrollHeight, 150)}px`;
+    });
+
+    newChat.addEventListener("click", () => {
+        history = [];
+        chat.innerHTML = `
+            <div class="welcome" id="welcome">
+                <span class="welcome-badge">BUSINESS-ONLY AI ADVISOR</span>
+                <h3>Turn a business question into a <span class="gradient-text">clear next move.</span></h3>
+                <p>Explore business ideas, validate opportunities, analyze markets, improve pricing, plan marketing, and think through growth decisions.</p>
+                <div class="suggestions" id="suggestions"></div>
+            </div>
+        `;
+
+        const freshSuggestions = document.getElementById("suggestions");
+        ideas.slice(0, 4).forEach(idea => {
+            freshSuggestions.appendChild(createButton(idea, "suggestion"));
+        });
+
+        input.focus();
+    });
+</script>
+</body>
+</html>
